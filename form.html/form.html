@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Form | CJM Finance</title>
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body class="form-page" onload="initForm()">
+    <header class="main-header">
+        <div class="header-content">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="menu-toggle" onclick="window.location.href='../dashboard.html'">☰</button>
+                <div class="logo">
+                    <img src="../logo/WhatsApp_Image_2025-12-31_at_09.17.54-removebg-preview (1).png" alt="CJM Finance Logo" class="logo-img">
+                    <h2 class="mobile-hide-text">CJM Finance</h2>
+                </div>
+            </div>
+            <nav class="top-nav">
+                <a href="../dashboard.html" class="btn btn-logout">← Back to Dashboard</a>
+                <div class="user-info">
+                    <span class="user-avatar">👤</span>
+                    <span id="userNameDisplay">User</span>
+                </div>
+                <button onclick="handleLogout(true)" class="btn btn-logout">Logout</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="content">
+        <div class="table-container" style="max-width: 800px; margin: 0 auto; padding: 2rem; background: white; border-radius: var(--radius); box-shadow: var(--shadow);">
+            <div class="card-header" style="margin-bottom: 2rem;">
+                <div>
+                    <h1 id="formTitle">Expense Entry</h1>
+                    <p style="color: var(--text-muted); font-size: 0.875rem;">Please enter the numeric amount for each field.</p>
+                </div>
+            </div>
+
+            <form id="financeForm" class="expense-form">
+                <div id="formFields" class="form-fields-grid">
+                    <!-- Dynamic fields injected by JS -->
+                </div>
+
+                <!-- Receipt Upload Section -->
+                <div id="receiptSection" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px dashed var(--border);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <label style="display: block; font-weight: 600; color: var(--text-main);">Upload Receipt (Optional)</label>
+                        <span id="receiptCount" style="font-size: 0.75rem; color: var(--text-muted);">Loading storage...</span>
+                    </div>
+                    <input type="file" id="receiptInput" accept="image/*,.pdf" multiple 
+                           style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; background: #f8fafc;">
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">Accepted formats: Images or PDF. Max 10 files at once. Max 1000 total per category.</p>
+                </div>
+                
+                <div style="margin-top: 2.5rem; display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" onclick="window.location.href='../dashboard.html'" class="btn btn-logout" style="padding: 0.75rem 1.5rem;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem;">Submit Data</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="../script.js"></script>
+    <script>
+        async function initForm() {
+            await checkAuth(true);
+            loadForm();
+        }
+
+        function loadForm() {
+            const type = localStorage.getItem("formType") || "office";
+            const formFields = document.getElementById("formFields");
+            const title = document.getElementById("formTitle");
+
+            const config = {
+                office: {
+                    title: "Office Expenses",
+                    fields: ["Rental", "Cleaner Expenses", "Water Bills", "Electric Bills", "WiFi & Internet", "Pantry", "Renovation"]
+                },
+                program: {
+                    title: "Program Expenses",
+                    fields: ["Client", "Hotel & Living", "Flight Ticket", "Gift/Hamper/Stationary/Other", "T-Shirt", "Car Rental", "Car Fuel", "Guest Speaker", "Venue", "Catering"]
+                },
+                company: {
+                    title: "Company Expenses",
+                    fields: ["Staff Incentive", "Vehicle Maintenance", "Volunteer House", "Program Supplies"]
+                },
+                daily: {
+                    title: "Daily Expenses",
+                    fields: ["Daily Expense Amount"]
+                },
+                income: {
+                    title: "Project Revenue",
+                    fields: ["Client", "Project Revenue Amount"]
+                }
+            };
+
+            const current = config[type] || config.office;
+            title.innerText = current.title;
+
+            // Display current receipt count
+            const receipts = globalData.receipts || [];
+            const currentCount = receipts.filter(r => r.formType === type).length;
+            const countEl = document.getElementById('receiptCount');
+            if (countEl) {
+                countEl.innerText = `${currentCount} / 1000 Used`;
+                if (currentCount >= 1000) {
+                    countEl.style.color = 'var(--danger)';
+                    countEl.style.fontWeight = 'bold';
+                    document.getElementById('receiptInput').disabled = true;
+                    document.getElementById('receiptInput').title = "Maximum limit reached for this category.";
+                }
+            }
+
+            formFields.innerHTML = current.fields.map(field => {
+                if (field === "Client") {
+                    return `
+                        <div class="input-group" style="margin-bottom: 1.5rem;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-main);">${field}</label>
+                            <input type="text" name="${field}" placeholder="Enter Client Name" 
+                                   style="width: 100%; border: 1px solid #cbd5e1; border-radius: var(--radius); padding: 0.85rem 1rem; outline: none; font-size: 1.1rem; color: var(--text-main); transition: border-color 0.2s;"
+                                   onfocus="this.style.borderColor='var(--primary)'" 
+                                   onblur="this.style.borderColor='#cbd5e1'">
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="input-group" style="margin-bottom: 1.5rem;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-main);">${field}</label>
+                        <div style="display: flex; align-items: center; border: 1px solid #cbd5e1; border-radius: var(--radius); background: white; transition: border-color 0.2s;">
+                            <span style="background: #f1f5f9; padding: 0.85rem 1rem; border-right: 1px solid #cbd5e1; font-weight: 800; color: #475569; min-width: 60px; text-align: center;">RM</span>
+                            <input type="number" name="${field}" step="0.01" placeholder="0.00" 
+                                   style="flex: 1; border: none; padding: 0.85rem 1rem; outline: none; font-size: 1.1rem; color: var(--text-main); background: transparent;"
+                                   onfocus="this.parentElement.style.borderColor='var(--primary)'" 
+                                   onblur="this.parentElement.style.borderColor='#cbd5e1'">
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Add Status dropdown for Project Revenue
+            if (type === 'income') {
+                const statusGroup = document.createElement('div');
+                statusGroup.className = 'input-group';
+                statusGroup.style.marginBottom = '1.5rem';
+                statusGroup.innerHTML = `
+                    <label style="display: block; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-main);">Status</label>
+                    <select name="revenueStatus" 
+                            style="width: 100%; padding: 0.85rem 1rem; border: 1px solid #cbd5e1; border-radius: var(--radius); font-size: 1.1rem; color: var(--text-main); background: white; outline: none; transition: border-color 0.2s;"
+                            onfocus="this.style.borderColor='var(--primary)'" 
+                            onblur="this.style.borderColor='#cbd5e1'">
+                        <option value="Completed">Completed</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                `;
+                formFields.appendChild(statusGroup);
+            }
+
+            document.getElementById('financeForm').onsubmit = async function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                let totalAmount = 0;
+                let itemizedData = {};
+                let revenueStatus = formData.get('revenueStatus') || 'Completed';
+
+                formData.forEach((value, key) => {
+                    if (key === 'Client') {
+                        itemizedData[key] = value;
+                    } else if (key !== 'revenueStatus') {
+                        const amount = parseFloat(value || 0);
+                        totalAmount += amount;
+                        itemizedData[key] = amount;
+                    }
+                });
+
+                // Handle Receipts
+                let receiptFiles = [];
+                const fileInput = document.getElementById('receiptInput');
+                if (fileInput && fileInput.files.length > 0) {
+                    if (fileInput.files.length > 10) {
+                        alert("You can only upload a maximum of 10 receipts at a time.");
+                        return;
+                    }
+
+                    for (const file of fileInput.files) {
+                        // Compress Image if it's an image
+                        if (file.type.startsWith('image/')) {
+                            const compressedFile = await new Promise((resolve) => {
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                    const img = new Image();
+                                    img.onload = () => {
+                                        const canvas = document.createElement('canvas');
+                                        let width = img.width;
+                                        let height = img.height;
+                                        const MAX_SIZE = 1000;
+                                        if (width > height) {
+                                            if (width > MAX_SIZE) {
+                                                height *= MAX_SIZE / width;
+                                                width = MAX_SIZE;
+                                            }
+                                        } else {
+                                            if (height > MAX_SIZE) {
+                                                width *= MAX_SIZE / height;
+                                                height = MAX_SIZE;
+                                            }
+                                        }
+                                        canvas.width = width;
+                                        canvas.height = height;
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.drawImage(img, 0, 0, width, height);
+                                        
+                                        canvas.toBlob((blob) => {
+                                            const cf = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                                                type: 'image/jpeg',
+                                                lastModified: Date.now()
+                                            });
+                                            resolve(cf);
+                                        }, 'image/jpeg', 0.6);
+                                    };
+                                    img.src = e.target.result;
+                                };
+                                reader.readAsDataURL(file);
+                            });
+                            receiptFiles.push(compressedFile);
+                        } else {
+                            receiptFiles.push(file); // Use original for PDFs etc.
+                        }
+                    }
+                }
+                
+                // Update via the script.js helper (now async)
+                const success = await updateFinancialStats(type, totalAmount, current.title, receiptFiles, itemizedData, revenueStatus);
+                
+                if (success) {
+                    alert(current.title + " (Total: RM " + totalAmount.toFixed(2) + ") has been successfully added to your records!");
+                    window.location.href = "../dashboard.html";
+                }
+            };
+        }
+    </script>
+</body>
+</html>
