@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | CJM Finance</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dashboard-page" onload="checkAuth()">
+    <header class="main-header">
+        <div class="header-content">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                <div class="logo">
+                    <img src="logo/WhatsApp_Image_2025-12-31_at_09.17.54-removebg-preview (1).png" alt="CJM Finance Logo" class="logo-img">
+                    <h2>CJM Finance</h2>
+                </div>
+            </div>
+            <nav class="top-nav">
+                <div class="user-info">
+                    <span class="user-avatar">👤</span>
+                    <span id="userNameDisplay">User</span>
+                </div>
+                <button onclick="handleLogout()" class="btn btn-logout">Logout</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+        <aside class="sidebar">
+            <ul class="side-menu">
+                <li id="menu-form" class="active"><a href="#" onclick="showSection('form')">📝 Form</a></li>
+                <li id="menu-accounts"><a href="#" onclick="showSection('accounts')">💳 Accounts</a></li>
+                <li id="menu-transactions"><a href="#" onclick="showSection('transactions')">📑 Transactions</a></li>
+                <li id="menu-receipts"><a href="#" onclick="showSection('receipts')">🧾 Receipts</a></li>
+                <li id="menu-settings"><a href="#" onclick="showSection('settings')">⚙️ Settings</a></li>
+            </ul>
+        </aside>
+
+        <section class="content">
+            <!-- Form Section (Default) -->
+            <div id="section-form" class="dashboard-section">
+                <div class="content-header">
+                    <h1>Expense Forms</h1>
+                    <p>Select a category below to submit your expenses.</p>
+                </div>
+
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                    <div class="stat-card" style="cursor: pointer; transition: transform 0.2s;" onclick="openForm('office')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                        <div class="stat-info">
+                            <h3>Office</h3>
+                            <p class="stat-value">Office Expense</p>
+                        </div>
+                        <span class="stat-icon balance">🏢</span>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer; transition: transform 0.2s;" onclick="openForm('program')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                        <div class="stat-info">
+                            <h3>Program</h3>
+                            <p class="stat-value" style="color: var(--success);">Program Expense</p>
+                        </div>
+                        <span class="stat-icon income">📅</span>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer; transition: transform 0.2s;" onclick="openForm('company')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                        <div class="stat-info">
+                            <h3>Company</h3>
+                            <p class="stat-value" style="color: #8b5cf6;">Company Expense</p>
+                        </div>
+                        <span class="stat-icon" style="background: #f3e8ff;">🏢</span>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer; transition: transform 0.2s;" onclick="openForm('daily')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                        <div class="stat-info">
+                            <h3>Daily Expenses</h3>
+                            <p class="stat-value" style="color: #f59e0b;">Submit daily expenses</p>
+                        </div>
+                        <span class="stat-icon" style="background: #fffbeb;">☕</span>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer; transition: transform 0.2s;" onclick="openForm('income')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                        <div class="stat-info">
+                            <h3>Project Revenue</h3>
+                            <p class="stat-value" style="color: #0ea5e9;">Add Revenue</p>
+                        </div>
+                        <span class="stat-icon" style="background: #e0f2fe;">💵</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accounts Section -->
+            <div id="section-accounts" class="dashboard-section" style="display: none;">
+                <div class="content-header">
+                    <h1>Accounts Overview</h1>
+                    <p>Summary of all financial activities.</p>
+                </div>
+
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Total Balance</h3>
+                            <p class="stat-value" id="totalBalanceDisplay">RM 0.00</p>
+                        </div>
+                        <span class="stat-icon balance">💰</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Yearly Income</h3>
+                            <p class="stat-value text-success" id="totalIncomeDisplay">+ RM 0.00</p>
+                        </div>
+                        <span class="stat-icon income">📈</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Pending Income</h3>
+                            <p class="stat-value" id="pendingIncomeDisplay" style="color: #f59e0b;">RM 0.00</p>
+                        </div>
+                        <span class="stat-icon" style="background: #fffbeb;">⏳</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Completed Income</h3>
+                            <p class="stat-value text-success" id="completedIncomeDisplay">RM 0.00</p>
+                        </div>
+                        <span class="stat-icon" style="background: #ecfdf5;">✅</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Total Expenses</h3>
+                            <p class="stat-value text-danger" id="totalExpenseDisplay">- RM 0.00</p>
+                        </div>
+                        <span class="stat-icon expenses">📉</span>
+                    </div>
+                </div>
+
+                <!-- Split Expenses Section -->
+                <div class="stats-grid" style="margin-top: 1rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+                    <div class="stat-card" style="flex-direction: column; align-items: stretch;">
+                        <div class="stat-info" style="margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
+                            <h3>Office Expenses</h3>
+                            <p class="stat-value" id="officeExpenseDisplay" style="font-size: 1.25rem;">RM 0.00</p>
+                        </div>
+                        <div id="officeItemList" class="itemized-list">
+                            <!-- Items injected by JS -->
+                        </div>
+                    </div>
+                    <div class="stat-card" style="flex-direction: column; align-items: stretch;">
+                        <div class="stat-info" style="margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
+                            <h3>Program Expenses</h3>
+                            <p class="stat-value" id="programExpenseDisplay" style="font-size: 1.25rem;">RM 0.00</p>
+                        </div>
+                        <div id="programItemList" class="itemized-list">
+                            <!-- Items injected by JS -->
+                        </div>
+                    </div>
+                    <div class="stat-card" style="flex-direction: column; align-items: stretch;">
+                        <div class="stat-info" style="margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
+                            <h3>Company Expenses</h3>
+                            <p class="stat-value" id="companyExpenseDisplay" style="font-size: 1.25rem;">RM 0.00</p>
+                        </div>
+                        <div id="companyItemList" class="itemized-list">
+                            <!-- Items injected by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Expenses summary box added -->
+                <div style="margin-top: 1.5rem; padding: 1.5rem; background: #fffbeb; border-radius: var(--radius); border-left: 4px solid #f59e0b; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="color: #92400e; font-size: 1.1rem; margin-bottom: 0.25rem;">Daily Expenses Total</h3>
+                        <p style="color: #b45309; font-size: 0.9rem;">Aggregated total of all daily miscellaneous expenses.</p>
+                    </div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: #b45309;" id="dailyExpenseTotalDisplay">
+                        RM 0.00
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Section (Admin Only) -->
+            <div id="section-transactions" class="dashboard-section" style="display: none;">
+                <div class="content-header">
+                    <h1>Transaction History</h1>
+                    <p>Detailed history of all entries (Admin Only).</p>
+                </div>
+                <div id="transactions-container" class="main-grid" style="grid-template-columns: 1fr; gap: 2rem;">
+                    <!-- Multiple tables injected by JS -->
+                </div>
+            </div>
+
+            <!-- Receipts Section -->
+            <div id="section-receipts" class="dashboard-section" style="display: none;">
+                <div class="content-header">
+                    <h1>Receipts Repository</h1>
+                    <p>Select a category to view and download individual receipts.</p>
+                </div>
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); align-items: start;">
+                    <!-- Office -->
+                    <div class="stat-card" style="flex-direction: column; align-items: stretch; gap: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 1rem;">
+                            <h3>Office</h3>
+                            <button onclick="toggleReceiptList('office')" class="btn btn-primary" style="padding: 8px 16px;">View Receipts</button>
+                        </div>
+                        <div id="receipt-list-office" class="receipt-list" style="display: none; background: #f8fafc; border-radius: 8px; margin-top: 0.5rem; max-height: 300px; overflow-y: auto;">
+                            <!-- List injected by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Program -->
+                    <div class="stat-card" style="flex-direction: column; align-items: stretch; gap: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 1rem;">
+                            <h3>Program</h3>
+                            <button onclick="toggleReceiptList('program')" class="btn btn-primary" style="padding: 8px 16px; background-color: var(--success);">View Receipts</button>
+                        </div>
+                        <div id="receipt-list-program" class="receipt-list" style="display: none; background: #f8fafc; border-radius: 8px; margin-top: 0.5rem; max-height: 300px; overflow-y: auto;">
+                            <!-- List injected by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Company -->
+                    <div class="stat-card" style="flex-direction: column; align-items: stretch; gap: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 1rem;">
+                            <h3>Company</h3>
+                            <button onclick="toggleReceiptList('company')" class="btn btn-primary" style="padding: 8px 16px; background-color: #8b5cf6;">View Receipts</button>
+                        </div>
+                        <div id="receipt-list-company" class="receipt-list" style="display: none; background: #f8fafc; border-radius: 8px; margin-top: 0.5rem; max-height: 300px; overflow-y: auto;">
+                            <!-- List injected by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Daily -->
+                    <div class="stat-card" style="flex-direction: column; align-items: stretch; gap: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 1rem;">
+                            <h3>Daily</h3>
+                            <button onclick="toggleReceiptList('daily')" class="btn btn-primary" style="padding: 8px 16px; background-color: #f59e0b;">View Receipts</button>
+                        </div>
+                        <div id="receipt-list-daily" class="receipt-list" style="display: none; background: #f8fafc; border-radius: 8px; margin-top: 0.5rem; max-height: 300px; overflow-y: auto;">
+                            <!-- List injected by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Revenue -->
+                    <div class="stat-card" style="flex-direction: column; align-items: stretch; gap: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 1rem;">
+                            <h3>Revenue</h3>
+                            <button onclick="toggleReceiptList('income')" class="btn btn-primary" style="padding: 8px 16px; background-color: #0ea5e9;">View Receipts</button>
+                        </div>
+                        <div id="receipt-list-income" class="receipt-list" style="display: none; background: #f8fafc; border-radius: 8px; margin-top: 0.5rem; max-height: 300px; overflow-y: auto;">
+                            <!-- List injected by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="section-settings" class="dashboard-section" style="display: none;">
+                <div class="content-header">
+                    <h1>Settings</h1>
+                    <p>Manage your system data and preferences.</p>
+                </div>
+                <div class="main-grid" style="grid-template-columns: 1fr;">
+                    <div class="table-container">
+                        <div class="card-header">
+                            <h2>Data Management</h2>
+                        </div>
+                        <div style="padding: 1rem; border: 1px solid #fee2e2; border-radius: var(--radius); background: #fef2f2; display: flex; flex-direction: column; gap: 1rem;">
+                            <h3 style="color: var(--danger);">Data Management</h3>
+                            
+                            <div>
+                                <h4 style="margin-bottom: 0.25rem;">Reset Financial Data</h4>
+                                <p style="color: #991b1b; font-size: 0.875rem; margin-bottom: 1rem;">
+                                    Warning: This will permanently delete all your RM totals and transaction history.
+                                </p>
+                                <button onclick="handleResetData()" class="btn" style="background-color: var(--danger); color: white;">Reset All RM Totals</button>
+                            </div>
+
+                            <div style="border-top: 1px solid #fee2e2; padding-top: 1rem;">
+                                <h4 style="margin-bottom: 0.25rem;">Recalculate Totals</h4>
+                                <p style="color: #92400e; font-size: 0.875rem; margin-bottom: 1rem;">
+                                    Use this if the Account Overview numbers don't match the transaction history.
+                                </p>
+                                <button onclick="recalculateAllTotals()" class="btn btn-primary" style="background-color: #f59e0b;">Recalculate Overview</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+            document.getElementById('sidebar-overlay').style.display = 
+                document.querySelector('.sidebar').classList.contains('active') ? 'block' : 'none';
+        }
+
+        function showSection(sectionId) {
+            // Close sidebar on mobile after clicking
+            if (window.innerWidth <= 1024) {
+                document.querySelector('.sidebar').classList.remove('active');
+                document.getElementById('sidebar-overlay').style.display = 'none';
+            }
+            
+            const user = JSON.parse(localStorage.getItem("cjm_user"));
+            const isAdmin = user.username === 'firdaus.ramlan' || user.username === 'kyrul.08';
+
+            // Check access for sensitive sections (Admin only: Firdaus & Khairul)
+            if (sectionId === 'accounts' || sectionId === 'transactions' || sectionId === 'settings' || sectionId === 'receipts') {
+                if (!isAdmin) {
+                    alert("only admins can access this section");
+                    return;
+                }
+            }
+            
+            toggleSection(sectionId);
+        }
+
+        function toggleSection(sectionId) {
+            // Toggle sections
+            document.querySelectorAll('.dashboard-section').forEach(s => s.style.display = 'none');
+            document.getElementById('section-' + sectionId).style.display = 'block';
+
+            // Toggle active menu
+            document.querySelectorAll('.side-menu li').forEach(li => li.classList.remove('active'));
+            document.getElementById('menu-' + sectionId).classList.add('active');
+
+            if (sectionId === 'accounts') {
+                displayFinancialStats();
+            } else if (sectionId === 'transactions') {
+                renderTransactions();
+            }
+        }
+    </script>
+</body>
+</html>
