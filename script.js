@@ -204,10 +204,10 @@ function getInitialFinancialData() {
             "Rental": 0, "Cleaner Expenses": 0, "Water Bills": 0, "Electric Bills": 0, "WiFi & Internet": 0, "Pantry": 0, "Renovation": 0
         },
         programBreakdown: {
-            "Hotel & Living": 0, "Flight Ticket": 0, "Gift/Hamper/Stationary/Other": 0, "T-Shirt": 0, "Car Rental": 0, "Car Fuel": 0, "Guest Speaker": 0, "Venue": 0, "Catering": 0
+            "Hotel": 0, "Living Expenses": 0, "Toll": 0, "Flight Ticket": 0, "Gift/Hamper/Stationary/Other": 0, "T-Shirt": 0, "Car Rental": 0, "Car Fuel": 0, "Guest Speaker": 0, "Venue": 0, "Catering": 0
         },
         companyBreakdown: {
-            "Staff Incentive": 0, "Vehicle Maintenance": 0, "Volunteer House": 0, "Program Supplies": 0
+            "Staff Incentive": 0, "Vehicle Maintenance": 0, "Volunteer House": 0, "Program/Company Supplies": 0
         }
     };
 }
@@ -267,6 +267,44 @@ function getFinancialTotals() {
     for (const key in initial) {
         if (globalData.financial_data[key] === undefined) {
             globalData.financial_data[key] = initial[key];
+        }
+    }
+
+    // Safety check: ensure breakdown keys exist + migrate old program key
+    if (!globalData.financial_data.officeBreakdown || typeof globalData.financial_data.officeBreakdown !== 'object') {
+        globalData.financial_data.officeBreakdown = {};
+    }
+    for (const k in initial.officeBreakdown) {
+        if (globalData.financial_data.officeBreakdown[k] === undefined) {
+            globalData.financial_data.officeBreakdown[k] = initial.officeBreakdown[k];
+        }
+    }
+
+    if (!globalData.financial_data.programBreakdown || typeof globalData.financial_data.programBreakdown !== 'object') {
+        globalData.financial_data.programBreakdown = {};
+    }
+    if (globalData.financial_data.programBreakdown["Hotel & Living"] !== undefined) {
+        const oldVal = parseFloat(globalData.financial_data.programBreakdown["Hotel & Living"]) || 0;
+        globalData.financial_data.programBreakdown["Hotel"] = (parseFloat(globalData.financial_data.programBreakdown["Hotel"]) || 0) + oldVal;
+        delete globalData.financial_data.programBreakdown["Hotel & Living"];
+    }
+    for (const k in initial.programBreakdown) {
+        if (globalData.financial_data.programBreakdown[k] === undefined) {
+            globalData.financial_data.programBreakdown[k] = initial.programBreakdown[k];
+        }
+    }
+
+    if (!globalData.financial_data.companyBreakdown || typeof globalData.financial_data.companyBreakdown !== 'object') {
+        globalData.financial_data.companyBreakdown = {};
+    }
+    if (globalData.financial_data.companyBreakdown["Program Supplies"] !== undefined) {
+        const oldVal = parseFloat(globalData.financial_data.companyBreakdown["Program Supplies"]) || 0;
+        globalData.financial_data.companyBreakdown["Program/Company Supplies"] = (parseFloat(globalData.financial_data.companyBreakdown["Program/Company Supplies"]) || 0) + oldVal;
+        delete globalData.financial_data.companyBreakdown["Program Supplies"];
+    }
+    for (const k in initial.companyBreakdown) {
+        if (globalData.financial_data.companyBreakdown[k] === undefined) {
+            globalData.financial_data.companyBreakdown[k] = initial.companyBreakdown[k];
         }
     }
     
