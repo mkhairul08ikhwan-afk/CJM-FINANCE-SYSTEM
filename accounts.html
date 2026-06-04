@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounts | CJM Finance</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dashboard-page" onload="checkAuth()">
+    <header class="main-header">
+        <div class="header-content">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+                <div class="logo">
+                    <img src="logo/WhatsApp_Image_2025-12-31_at_09.17.54-removebg-preview (1).png" alt="CJM Finance Logo" class="logo-img">
+                    <h2>CJM Finance</h2>
+                </div>
+            </div>
+            <nav class="top-nav">
+                <div class="user-info">
+                    <span class="user-avatar">👤</span>
+                    <span id="userNameDisplay">User</span>
+                </div>
+                <button onclick="handleLogout()" class="btn btn-logout">Logout</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+        <aside class="sidebar">
+            <ul class="side-menu">
+                <li id="menu-form" class="active"><a href="#" onclick="showSection('form')">📝 Form</a></li>
+                <li id="menu-transactions"><a href="#" onclick="showSection('transactions')">📑 Transactions</a></li>
+                <li id="menu-accounts"><a href="#" onclick="showSection('accounts')">💳 Accounts</a></li>
+                <li id="menu-receipts"><a href="#" onclick="showSection('receipts')">🧾 Receipts</a></li>
+                <li id="menu-reports"><a href="#" onclick="showSection('reports')">📄 Reports</a></li>
+                <li id="menu-recovery"><a href="#" onclick="showSection('recovery')">🛡️ Recovery</a></li>
+                <li id="menu-settings"><a href="#" onclick="showSection('settings')">⚙️ Settings</a></li>
+            </ul>
+        </aside>
+
+        <section class="content">
+            <!-- Form Section (Default Landing) -->
+            <div id="section-form" class="dashboard-section">
+                <div class="content-header">
+                    <h1>Expense Forms</h1>
+                    <p>Select a category below to submit your expenses.</p>
+                </div>
+
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                    <div class="stat-card" style="cursor: pointer; transition: transform 0.2s;" onclick="openForm('office')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                        <div class="stat-info">
+                            <h3>Office</h3>
+                            <p class="stat-value">Office Expense</p>
+                        </div>
+                        <span class="stat-icon balance">🏢</span>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer; transition: transform 0.2s;" onclick="openForm('program')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                        <div class="stat-info">
+                            <h3>Program</h3>
+                            <p class="stat-value" style="color: var(--success);">Program Expense</p>
+                        </div>
+                        <span class="stat-icon income">📅</span>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer; transition: transform 0.2s;" onclick="openForm('company')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                        <div class="stat-info">
+                            <h3>Company</h3>
+                            <p class="stat-value" style="color: #8b5cf6;">Company Expense</p>
+                        </div>
+                        <span class="stat-icon" style="background: #f3e8ff;">🏢</span>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer; transition: transform 0.2s;" onclick="openForm('income')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                        <div class="stat-info">
+                            <h3>Project Revenue</h3>
+                            <p class="stat-value" style="color: #0ea5e9;">Add Revenue</p>
+                        </div>
+                        <span class="stat-icon" style="background: #e0f2fe;">💵</span>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer; transition: transform 0.2s;" onclick="openForm('staff_incentive')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                        <div class="stat-info">
+                            <h3>Staff Incentive</h3>
+                            <p class="stat-value" style="color: #f59e0b;">Add Incentive</p>
+                        </div>
+                        <span class="stat-icon" style="background: #fffbeb;">🎁</span>
+                    </div>
+                    <div class="stat-card" style="cursor: pointer; transition: transform 0.2s;" onclick="openForm('daily')" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                        <div class="stat-info">
+                            <h3>Daily Expenses</h3>
+                            <p class="stat-value" style="color: #f59e0b;">Add Daily Expense</p>
+                        </div>
+                        <span class="stat-icon" style="background: #fffbeb;">📅</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accounts Section -->
+            <div id="section-accounts" class="dashboard-section" style="display: none;">
+                <div class="content-header">
+                    <h1>Financial Overview Center</h1>
+                    <p>Main financial center for monitoring, analytics, and category breakdowns.</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Total Balance</h3>
+                            <p class="stat-value" id="totalBalanceDisplay">RM 0.00</p>
+                        </div>
+                        <span class="stat-icon balance">💰</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Yearly Income</h3>
+                            <p class="stat-value text-success" id="totalIncomeDisplay">+ RM 0.00</p>
+                        </div>
+                        <span class="stat-icon income">📈</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Pending Income</h3>
+                            <p class="stat-value text-warning" id="pendingIncomeDisplay">RM 0.00</p>
+                        </div>
+                        <span class="stat-icon" style="background: #fffbeb;">⏳</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Completed Income</h3>
+                            <p class="stat-value text-success" id="completedIncomeDisplay">RM 0.00</p>
+                        </div>
+                        <span class="stat-icon" style="background: #ecfdf5;">✅</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Total Expenses</h3>
+                            <p class="stat-value text-danger" id="totalExpenseDisplay">- RM 0.00</p>
+                        </div>
+                        <span class="stat-icon expenses">📉</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Daily Expenses</h3>
+                            <p class="stat-value" id="dailyExpenseTotalDisplay" style="color: #f59e0b;">RM 0.00</p>
+                        </div>
+                        <span class="stat-icon" style="background: #fffbeb;">📅</span>
+                    </div>
+                </div>
+
+                <div class="main-grid">
+                    <!-- Left Column -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <!-- Financial Analytics -->
+                        <div class="table-container">
+                            <div class="card-header">
+                                <h2>Financial Analytics</h2>
+                            </div>
+                            <div style="padding: 1rem;">
+                                <div id="executiveSummaryContent" style="margin-bottom: 2rem;"></div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+                                    <div class="chart-container">
+                                        <h3 style="text-align: center; margin-bottom: 1rem; font-size: 0.9rem; color: #64748b;">Expense Distribution</h3>
+                                        <canvas id="expensePieChart"></canvas>
+                                    </div>
+                                    <div class="chart-container">
+                                        <h3 style="text-align: center; margin-bottom: 1rem; font-size: 0.9rem; color: #64748b;">Income vs Expenses</h3>
+                                        <canvas id="incomeExpenseBarChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="chart-container" style="margin-top: 1.5rem; height: 300px;">
+                                    <h3 style="text-align: center; margin-bottom: 1rem; font-size: 0.9rem; color: #64748b;">Monthly Financial Trend</h3>
+                                    <canvas id="financialTrendChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Monthly Summary -->
+                        <div class="table-container">
+                            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+                                <h2>Monthly Financial Summary</h2>
+                                <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                                    <select id="monthlyMonthSelector" onchange="updateMonthlySummary()" style="padding: 0.55rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: white;">
+                                        <option value="0">January</option>
+                                        <option value="1">February</option>
+                                        <option value="2">March</option>
+                                        <option value="3">April</option>
+                                        <option value="4">May</option>
+                                        <option value="5">June</option>
+                                        <option value="6">July</option>
+                                        <option value="7">August</option>
+                                        <option value="8">September</option>
+                                        <option value="9">October</option>
+                                        <option value="10">November</option>
+                                        <option value="11">December</option>
+                                    </select>
+                                    <select id="monthlyYearSelector" onchange="updateMonthlySummary()" style="padding: 0.55rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: white;"></select>
+                                </div>
+                            </div>
+                            <div class="stats-grid" style="margin-top: 1rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                                <div class="stat-card">
+                                    <div class="stat-info">
+                                        <h3>Total Income (Month)</h3>
+                                        <p class="stat-value text-success" id="monthlyIncomeDisplay">+ RM 0.00</p>
+                                    </div>
+                                    <span class="stat-icon income">📈</span>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-info">
+                                        <h3>Total Expenses (Month)</h3>
+                                        <p class="stat-value text-danger" id="monthlyExpenseDisplay">- RM 0.00</p>
+                                    </div>
+                                    <span class="stat-icon expenses">📉</span>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-info">
+                                        <h3>Net Balance (Month)</h3>
+                                        <p class="stat-value" id="monthlyNetDisplay">RM 0.00</p>
+                                    </div>
+                                    <span class="stat-icon balance">💰</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Annual Summary -->
+                        <div class="table-container">
+                            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+                                <h2>Annual Summary</h2>
+                                <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                                    <select id="yearlyYearSelector" onchange="updateYearlySummary()" style="padding: 0.55rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: white;"></select>
+                                </div>
+                            </div>
+                            <div class="stats-grid" style="margin-top: 1rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                                <div class="stat-card">
+                                    <div class="stat-info">
+                                        <h3>Total Income (Year)</h3>
+                                        <p class="stat-value text-success" id="yearlyIncomeDisplay">+ RM 0.00</p>
+                                    </div>
+                                    <span class="stat-icon income">📈</span>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-info">
+                                        <h3>Total Expenses (Year)</h3>
+                                        <p class="stat-value text-danger" id="yearlyExpenseDisplay">- RM 0.00</p>
+                                    </div>
+                                    <span class="stat-icon expenses">📉</span>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-info">
+                                        <h3>Annual Net Balance</h3>
+                                        <p class="stat-value" id="yearlyNetDisplay">RM 0.00</p>
+                                    </div>
+                                    <span class="stat-icon balance">💰</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Category Breakdown -->
+                        <div class="table-container">
+                            <div class="card-header">
+                                <h2>Expense Category Breakdown</h2>
+                            </div>
+                            <div class="stats-grid" style="margin-top: 1rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+                                <div class="stat-card" style="flex-direction: column; align-items: stretch;">
+                                    <div class="stat-info" style="margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
+                                        <h3>Office Expenses</h3>
+                                        <p class="stat-value" id="officeExpenseDisplay" style="font-size: 1.25rem;">RM 0.00</p>
+                                    </div>
+                                    <div id="officeItemList" class="itemized-list"></div>
+                                </div>
+                                <div class="stat-card" style="flex-direction: column; align-items: stretch;">
+                                    <div class="stat-info" style="margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
+                                        <h3>Program Expenses</h3>
+                                        <p class="stat-value" id="programExpenseDisplay" style="font-size: 1.25rem;">RM 0.00</p>
+                                    </div>
+                                    <div id="programItemList" class="itemized-list"></div>
+                                </div>
+                                <div class="stat-card" style="flex-direction: column; align-items: stretch;">
+                                    <div class="stat-info" style="margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
+                                        <h3>Company Expenses</h3>
+                                        <p class="stat-value" id="companyExpenseDisplay" style="font-size: 1.25rem;">RM 0.00</p>
+                                    </div>
+                                    <div id="companyItemList" class="itemized-list"></div>
+                                </div>
+                                <div class="stat-card" style="flex-direction: column; align-items: stretch;">
+                                    <div class="stat-info" style="margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem;">
+                                        <h3>Daily Expenses</h3>
+                                        <p class="stat-value" id="dailyItemListDisplay" style="font-size: 1.25rem; color: #f59e0b;">RM 0.00</p>
+                                    </div>
+                                    <div id="dailyItemList" class="itemized-list"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Transactions -->
+                        <div class="table-container">
+                            <div class="card-header">
+                                <h2>Recent Transactions</h2>
+                            </div>
+                            <table class="transaction-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Description</th>
+                                        <th>Category</th>
+                                        <th>User</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashTransactionBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <!-- Incentive Summary -->
+                        <div class="table-container">
+                            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+                                <h2>Incentive Summary</h2>
+                                <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                                    <select id="incentiveMonthSelector" onchange="updateIncentiveSummary()" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 8px; background: white; font-size: 0.8rem;">
+                                        <option value="0">Jan</option>
+                                        <option value="1">Feb</option>
+                                        <option value="2">Mar</option>
+                                        <option value="3">Apr</option>
+                                        <option value="4">May</option>
+                                        <option value="5">Jun</option>
+                                        <option value="6">Jul</option>
+                                        <option value="7">Aug</option>
+                                        <option value="8">Sep</option>
+                                        <option value="9">Oct</option>
+                                        <option value="10">Nov</option>
+                                        <option value="11">Dec</option>
+                                    </select>
+                                    <select id="incentiveYearSelector" onchange="updateIncentiveSummary()" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 8px; background: white; font-size: 0.8rem;"></select>
+                                </div>
+                            </div>
+                            <div style="display: grid; gap: 1rem; margin-top: 1rem;">
+                                <div class="stat-card" style="padding: 1rem;">
+                                    <div class="stat-info">
+                                        <h3>Monthly Total</h3>
+                                        <p class="stat-value" id="incentiveTotalMonth" style="font-size: 1.25rem;">RM 0.00</p>
+                                    </div>
+                                    <span class="stat-icon balance" style="width: 32px; height: 32px; font-size: 1rem;">🎁</span>
+                                </div>
+                                <div class="stat-card" style="padding: 1rem;">
+                                    <div class="stat-info">
+                                        <h3>Yearly Total</h3>
+                                        <p class="stat-value" id="incentiveTotalYear" style="font-size: 1.25rem;">RM 0.00</p>
+                                    </div>
+                                    <span class="stat-icon balance" style="width: 32px; height: 32px; font-size: 1rem;">📅</span>
+                                </div>
+                            </div>
+                            <div style="margin-top: 1rem; max-height: 400px; overflow-y: auto;">
+                                <table class="transaction-table" style="font-size: 0.8rem;">
+                                    <thead>
+                                        <tr>
+                                            <th>Staff Name</th>
+                                            <th>Total (Year)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="incentiveByEmployeeBody">
+                                        <tr><td colspan="2" style="text-align: center; padding: 1rem; color: #94a3b8;">No records</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Quick Access -->
+                        <div class="stats-grid" style="grid-template-columns: 1fr; gap: 1rem;">
+                            <div class="stat-card" style="cursor: pointer; background: #f8fafc; border: 1px solid var(--border);" onclick="showSection('receipts')">
+                                <div class="stat-info">
+                                    <h3>Receipts</h3>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted);">View Repository</p>
+                                </div>
+                                <span class="stat-icon" style="background: #e0f2fe;">🧾</span>
+                            </div>
+                            <div class="stat-card" style="cursor: pointer; background: #f8fafc; border: 1px solid var(--border);" onclick="showSection('reports')">
+                                <div class="stat-info">
+                                    <h3>Reports</h3>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted);">Financial Statements</p>
+                                </div>
+                                <span class="stat-icon" style="background: #fef9c3;">📄</span>
+                            </div>
+                            <div class="stat-card" style="cursor: pointer; background: #f8fafc; border: 1px solid var(--border);" onclick="showSection('recovery')">
+                                <div class="stat-info">
+                                    <h3>Recovery</h3>
+                                    <p style="font-size: 0.8rem; color: var(--text-muted);">Backups & Recycle Bin</p>
+                                </div>
+                                <span class="stat-icon" style="background: #fee2e2;">🛡️</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Section (Admin Only) -->
+            <div id="section-transactions" class="dashboard-section" style="display: none;">
+                <div class="content-header">
+                    <h1>Transaction History</h1>
+                    <p>Detailed history of all entries (Admin Only).</p>
+                </div>
+                <div class="main-grid" style="grid-template-columns: 1fr;">
+                    <div class="table-container">
+                        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; padding: 0 0 1rem 0;">
+                            <select id="txFilterMonth" onchange="applyTransactionFilters()" style="padding: 0.55rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: white;">
+                                <option value="all">All Months</option>
+                                <option value="0">January</option>
+                                <option value="1">February</option>
+                                <option value="2">March</option>
+                                <option value="3">April</option>
+                                <option value="4">May</option>
+                                <option value="5">June</option>
+                                <option value="6">July</option>
+                                <option value="7">August</option>
+                                <option value="8">September</option>
+                                <option value="9">October</option>
+                                <option value="10">November</option>
+                                <option value="11">December</option>
+                            </select>
+                            <select id="txFilterYear" onchange="applyTransactionFilters()" style="padding: 0.55rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: white;"></select>
+                            <select id="txFilterCategory" onchange="applyTransactionFilters()" style="padding: 0.55rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: white;">
+                                <option value="all">All Categories</option>
+                                <option value="Revenue">Revenue</option>
+                                <option value="Expense">Expense</option>
+                                <option value="Staff Incentive">Staff Incentive</option>
+                            </select>
+                            <select id="txFilterStatus" onchange="applyTransactionFilters()" style="padding: 0.55rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: white;">
+                                <option value="all">All Statuses</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <table class="transaction-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Category</th>
+                                    <th>User</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionBody">
+                                <!-- Transactions injected by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Receipts Section -->
+            <div id="section-receipts" class="dashboard-section" style="display: none;">
+                <div class="content-header">
+                    <h1>Receipts Repository</h1>
+                    <p>Select a category to view and download individual receipts.</p>
+                </div>
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); align-items: start;">
+                    <!-- Office -->
+                    <div class="stat-card" style="flex-direction: column; align-items: stretch; gap: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 1rem;">
+                            <h3>Office</h3>
+                            <button onclick="toggleReceiptList('office')" class="btn btn-primary" style="padding: 8px 16px;">View Receipts</button>
+                        </div>
+                        <div id="receipt-list-office" class="receipt-list" style="display: none; background: #f8fafc; border-radius: 8px; margin-top: 0.5rem; max-height: 300px; overflow-y: auto;">
+                            <!-- List injected by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Program -->
+                    <div class="stat-card" style="flex-direction: column; align-items: stretch; gap: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 1rem;">
+                            <h3>Program</h3>
+                            <button onclick="toggleReceiptList('program')" class="btn btn-primary" style="padding: 8px 16px; background-color: var(--success);">View Receipts</button>
+                        </div>
+                        <div id="receipt-list-program" class="receipt-list" style="display: none; background: #f8fafc; border-radius: 8px; margin-top: 0.5rem; max-height: 300px; overflow-y: auto;">
+                            <!-- List injected by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Company -->
+                    <div class="stat-card" style="flex-direction: column; align-items: stretch; gap: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 1rem;">
+                            <h3>Company</h3>
+                            <button onclick="toggleReceiptList('company')" class="btn btn-primary" style="padding: 8px 16px; background-color: #8b5cf6;">View Receipts</button>
+                        </div>
+                        <div id="receipt-list-company" class="receipt-list" style="display: none; background: #f8fafc; border-radius: 8px; margin-top: 0.5rem; max-height: 300px; overflow-y: auto;">
+                            <!-- List injected by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Revenue -->
+                    <div class="stat-card" style="flex-direction: column; align-items: stretch; gap: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 1rem;">
+                            <h3>Revenue</h3>
+                            <button onclick="toggleReceiptList('income')" class="btn btn-primary" style="padding: 8px 16px; background-color: #0ea5e9;">View Receipts</button>
+                        </div>
+                        <div id="receipt-list-income" class="receipt-list" style="display: none; background: #f8fafc; border-radius: 8px; margin-top: 0.5rem; max-height: 300px; overflow-y: auto;">
+                            <!-- List injected by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="section-settings" class="dashboard-section" style="display: none;">
+                <div class="content-header">
+                    <h1>Settings</h1>
+                    <p>Manage your system data and preferences.</p>
+                </div>
+                <div class="main-grid" style="grid-template-columns: 1fr;">
+                    <div class="table-container">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <h2>Cloud Sync (Supabase)</h2>
+                            <span id="cloudStatusBadge" style="font-weight: 800;">🔴 Unconfigured</span>
+                        </div>
+                        <div style="padding: 1rem; display: grid; gap: 0.75rem;">
+                            <div id="supabaseStatusText" style="font-size: 0.875rem; color: var(--text-muted);">Checking Supabase configuration...</div>
+                            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                                <button id="syncToCloudBtn" onclick="handleManualSync()" class="btn btn-primary">Sync to Cloud</button>
+                                <button id="quickSyncBtn" onclick="handleManualSync()" class="btn btn-primary" style="background-color: #0ea5e9;">Sync Now</button>
+                                <button onclick="initialMigration()" class="btn btn-primary" style="background-color: #8b5cf6;">Initial Migration</button>
+                            </div>
+                            <div style="font-size: 0.875rem; color: var(--text-muted);">Last Sync: <span id="lastSyncDisplay">Never</span></div>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <div class="card-header">
+                            <h2>Data Management</h2>
+                        </div>
+                        <div style="padding: 1rem; display: grid; gap: 1.5rem;">
+                            <div style="padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: #f8fafc;">
+                                <h3 style="margin-bottom: 0.5rem;">Recalculate System Totals</h3>
+                                <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1rem;">
+                                    If your totals seem incorrect, use this to rebuild all balances directly from your transaction history.
+                                </p>
+                                <button onclick="recalculateAllTotals()" class="btn btn-primary">Recalculate Now</button>
+                            </div>
+                            
+                            <div style="padding: 1rem; border: 1px solid #fee2e2; border-radius: var(--radius); background: #fef2f2;">
+                                <h3 style="color: var(--danger); margin-bottom: 0.5rem;">Reset Financial Data</h3>
+                                <p style="color: #991b1b; font-size: 0.875rem; margin-bottom: 1.5rem;">
+                                    Warning: This will permanently delete all your RM totals and transaction history. Your login profile will not be affected.
+                                </p>
+                                <button onclick="handleResetData()" class="btn" style="background-color: var(--danger); color: white;">Reset All RM Totals</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Section -->
+            <div id="section-reports" class="dashboard-section" style="display: none;">
+                <div class="content-header">
+                    <h1>Reports</h1>
+                    <p>Monthly, yearly, and complete financial statements (uses Transaction Date).</p>
+                </div>
+
+                <div class="main-grid" style="grid-template-columns: 1fr;">
+                    <div class="table-container">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+                            <h2>Report Filters</h2>
+                            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                                <select id="reportModeSelector" onchange="handleReportModeChange()" style="padding: 0.55rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: white;">
+                                    <option value="all">All</option>
+                                    <option value="yearly">Yearly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                                <div id="yearSelectorGroup" style="display: none;">
+                                    <select id="reportYearSelector" onchange="updateFilteredStats()" style="padding: 0.55rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: white;"></select>
+                                </div>
+                                <div id="monthSelectorGroup" style="display: none;">
+                                    <select id="reportMonthSelector" onchange="updateFilteredStats()" style="padding: 0.55rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: white;">
+                                        <option value="0">January</option>
+                                        <option value="1">February</option>
+                                        <option value="2">March</option>
+                                        <option value="3">April</option>
+                                        <option value="4">May</option>
+                                        <option value="5">June</option>
+                                        <option value="6">July</option>
+                                        <option value="7">August</option>
+                                        <option value="8">September</option>
+                                        <option value="9">October</option>
+                                        <option value="10">November</option>
+                                        <option value="11">December</option>
+                                    </select>
+                                </div>
+                                <select id="reportStatusSelector" onchange="updateFilteredStats()" style="padding: 0.55rem 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: white;">
+                                    <option value="all">All Statuses</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Completed">Completed</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                                <button onclick="exportToPDF()" class="btn btn-primary" style="background-color: #f59e0b;">Generate Report</button>
+                            </div>
+                        </div>
+                        <div style="padding: 1rem; color: var(--text-muted); font-size: 0.875rem;">
+                            Reports calculate by Transaction Date (including backdated entries).
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recovery Section -->
+            <div id="section-recovery" class="dashboard-section" style="display: none;">
+                <div class="content-header">
+                    <h1>Recovery Center</h1>
+                    <p>Recycle Bin, backups, and restore operations.</p>
+                </div>
+
+                <div class="main-grid" style="grid-template-columns: 1fr;">
+                    <div class="table-container">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <h2>System Health</h2>
+                            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                                <span id="healthIcon" style="width: 14px; height: 14px; border-radius: 999px; display: inline-block; background: #fee2e2;"></span>
+                                <span id="healthStatus" style="font-weight: 700;">Unknown</span>
+                            </div>
+                        </div>
+                        <div style="padding: 1rem; color: var(--text-muted); font-size: 0.875rem;">
+                            Backups are read directly from the backend backups folder via /api/backups.
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <h2>Recycle Bin</h2>
+                            <span id="recycleBinCount" style="color: var(--text-muted); font-size: 0.875rem;">0 Items</span>
+                        </div>
+                        <table class="transaction-table">
+                            <thead>
+                                <tr>
+                                    <th>Deleted At</th>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Deleted By</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recycleBinBody">
+                                <tr><td colspan="6" style="text-align: center; padding: 2rem; color: #94a3b8;">Recycle Bin is empty</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <h2>Backups</h2>
+                            <span style="color: var(--text-muted); font-size: 0.875rem;">Last Backup: <span id="lastBackupTime">Loading...</span></span>
+                        </div>
+                        <table class="transaction-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Type</th>
+                                    <th>Filename</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="backupsBody">
+                                <tr><td colspan="4" style="text-align: center; padding: 2rem; color: #94a3b8;">Loading backups...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-container">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <h2>Audit Logs</h2>
+                            <button onclick="exportBackupJSON()" class="btn btn-primary" style="padding: 8px 12px; background-color: #0ea5e9;">Export Current Data</button>
+                        </div>
+                        <table class="transaction-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Action</th>
+                                    <th>User</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="auditTrailBody">
+                                <tr><td colspan="4" style="text-align: center; padding: 2rem; color: #94a3b8;">Loading audit logs...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+            document.getElementById('sidebar-overlay').style.display = 
+                document.querySelector('.sidebar').classList.contains('active') ? 'block' : 'none';
+        }
+
+        function showSection(sectionId) {
+            // Close sidebar on mobile after clicking
+            if (window.innerWidth <= 1024) {
+                document.querySelector('.sidebar').classList.remove('active');
+                const overlay = document.getElementById('sidebar-overlay');
+                if (overlay) overlay.style.display = 'none';
+            }
+            
+            const user = JSON.parse(localStorage.getItem("cjm_user"));
+            if (!user) {
+                window.location.href = "index.html";
+                return;
+            }
+
+            const isAdmin = user.username === 'firdaus.ramlan' || user.username === 'kyrul.08';
+            const isKhairul = user.username === 'kyrul.08';
+
+            // Access Control Logic
+            if (sectionId === 'form') {
+                // Everyone can access form
+            } else if (sectionId === 'settings') {
+                // Only Khairul can access settings
+                if (!isKhairul) {
+                    alert("Only Khairul can access the Settings section.");
+                    return;
+                }
+            } else {
+                // All other sections (Accounts, Transactions, Receipts, Reports, Recovery) are Admin only
+                if (!isAdmin) {
+                    alert("Only administrators can access this section.");
+                    return;
+                }
+            }
+            
+            toggleSection(sectionId);
+        }
+
+        function toggleSection(sectionId) {
+            // Toggle sections
+            document.querySelectorAll('.dashboard-section').forEach(s => s.style.display = 'none');
+            document.getElementById('section-' + sectionId).style.display = 'block';
+
+            // Toggle active menu
+            document.querySelectorAll('.side-menu li').forEach(li => li.classList.remove('active'));
+            document.getElementById('menu-' + sectionId).classList.add('active');
+
+            if (sectionId === 'accounts') {
+                displayFinancialStats();
+                if (typeof updateMonthlySummary === 'function') updateMonthlySummary();
+                if (typeof updateYearlySummary === 'function') updateYearlySummary();
+                if (typeof updateIncentiveSummary === 'function') updateIncentiveSummary();
+                renderTransactions();
+            } else if (sectionId === 'transactions') {
+                renderTransactions();
+            } else if (sectionId === 'reports') {
+                populateYearSelector();
+                handleReportModeChange();
+            } else if (sectionId === 'recovery') {
+                if (typeof renderRecoveryCenter === 'function') renderRecoveryCenter();
+            } else if (sectionId === 'settings') {
+                if (typeof checkSupabaseConfig === 'function') checkSupabaseConfig();
+            }
+        }
+    </script>
+</body>
+</html>
