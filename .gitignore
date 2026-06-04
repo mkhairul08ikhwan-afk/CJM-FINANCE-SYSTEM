@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Local Data (IMPORTANT: Do not upload your actual database)
+backend/data.json
+backend/audit_logs.json
+backend/server_lifecycle.log
+backend/data.json.tmp
+
+# User Uploads
+backend/uploads/
+backend/backups/
+
+# IDE and OS files
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local Batch Scripts (Only for local use)
+*.bat
+backend/*.vbs
