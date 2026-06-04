@@ -1,6 +1,0 @@
-**/node_modules
-backend/uploads
-backend/data.json
-.git
-.env
-*.log
